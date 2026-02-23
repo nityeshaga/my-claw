@@ -3,6 +3,7 @@ import SwiftUI
 struct JobDetailView: View {
     let job: Job
     @EnvironmentObject var dataStore: DataStore
+    @Environment(\.dismiss) private var dismiss
     @State private var showRunConfirm = false
 
     var associatedSessions: [SessionRun] {
@@ -39,6 +40,8 @@ struct JobDetailView: View {
                         Button("Run Now") {
                             showRunConfirm = true
                         }
+                        Button("Close") { dismiss() }
+                            .keyboardShortcut(.escape)
                         .alert("Run \(job.name) now?", isPresented: $showRunConfirm) {
                             Button("Run") {
                                 _ = LaunchdManager.start(label: job.label)
