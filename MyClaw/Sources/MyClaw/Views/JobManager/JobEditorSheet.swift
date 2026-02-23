@@ -8,6 +8,7 @@ struct JobEditorSheet: View {
     @State private var prompt = ""
     @State private var workingDirectory = ""
     @State private var allowedTools = ""
+    @State private var mcpConfig = ""
     @State private var scheduleType: ScheduleType = .interval
     @State private var intervalMinutes = 30
     @State private var calendarHour = 9
@@ -82,6 +83,16 @@ struct JobEditorSheet: View {
                             .textFieldStyle(.roundedBorder)
                     }
 
+                    // MCP Config
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("MCP Config (optional)")
+                            .font(.subheadline).fontWeight(.medium)
+                        TextField("/path/to/.mcp.json", text: $mcpConfig)
+                            .textFieldStyle(.roundedBorder)
+                        Text("Override the default MCP config for this job.")
+                            .font(.caption).foregroundStyle(.tertiary)
+                    }
+
                     if let error = errorMessage {
                         Text(error)
                             .font(.caption)
@@ -129,12 +140,15 @@ struct JobEditorSheet: View {
 
         let tools = allowedTools.isEmpty ? nil : allowedTools.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 
+        let mcp = mcpConfig.trimmingCharacters(in: .whitespaces).isEmpty ? nil : mcpConfig.trimmingCharacters(in: .whitespaces)
+
         guard let result = LaunchdManager.createJob(
             name: sanitizedName,
             prompt: prompt,
             workingDirectory: workingDirectory,
             schedule: schedule,
-            allowedTools: tools
+            allowedTools: tools,
+            mcpConfig: mcp
         ) else {
             errorMessage = "Failed to create job files."
             return
