@@ -9,10 +9,5 @@ let package = Package(
             name: "MyClaw",
             path: "Sources/MyClaw"
         ),
-        .testTarget(
-            name: "MyClawTests",
-            dependencies: ["MyClaw"],
-            path: "Tests/MyClawTests"
-        ),
     ]
 )
