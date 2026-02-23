@@ -85,7 +85,7 @@ struct ContentView: View {
                 Button {
                     showJobEditor = true
                 } label: {
-                    Label("New Job", systemImage: "plus.circle.fill")
+                    Label("New Claude", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)

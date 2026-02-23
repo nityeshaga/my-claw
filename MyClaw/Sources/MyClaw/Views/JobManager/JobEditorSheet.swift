@@ -27,7 +27,7 @@ struct JobEditorSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("New Scheduled Job")
+                Text("Schedule a new Claude")
                     .font(.headline)
                 Spacer()
                 Button("Cancel") { dismiss() }
@@ -70,7 +70,7 @@ struct JobEditorSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("What should this job do?")
+                            Text("What should this Claude do?")
                                 .font(.subheadline).fontWeight(.medium)
                             TextEditor(text: $description)
                                 .frame(minHeight: 100)
