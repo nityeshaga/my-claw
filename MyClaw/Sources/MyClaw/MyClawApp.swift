@@ -52,6 +52,7 @@ struct ContentView: View {
     @EnvironmentObject var dataStore: DataStore
     @Binding var showNewSession: Bool
     @State private var selection: SidebarItem? = .dashboard
+    @State private var showJobEditor = false
 
     enum SidebarItem: Hashable {
         case dashboard
@@ -80,26 +81,33 @@ struct ContentView: View {
             }
             .listStyle(.sidebar)
             .navigationTitle("My Claw")
-            .toolbar {
-                ToolbarItem {
-                    Button {
-                        showNewSession = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .help("New Session")
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    showJobEditor = true
+                } label: {
+                    Label("New Job", systemImage: "plus.circle.fill")
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding()
+            }
+            .sheet(isPresented: $showJobEditor) {
+                JobEditorSheet { dataStore.refresh() }
+                    .frame(minWidth: 500, minHeight: 400)
             }
         } detail: {
-            switch selection {
-            case .dashboard, .none:
-                DashboardView()
-            case .jobs:
-                JobManagerView()
-            case .sessions:
-                AllSessionsView()
-            case .settings:
-                SettingsView()
+            Group {
+                switch selection {
+                case .dashboard, .none:
+                    DashboardView()
+                case .jobs:
+                    JobManagerView()
+                case .sessions:
+                    AllSessionsView()
+                case .settings:
+                    SettingsView()
+                }
             }
         }
     }
