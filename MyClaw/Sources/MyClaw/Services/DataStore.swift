@@ -52,6 +52,9 @@ class DataStore: ObservableObject {
             let plistPath = "\(launchAgentsDir)/\(filename)"
             guard let plistData = PlistParser.parse(at: plistPath) else { return nil }
 
+            // Only show jobs whose scripts live in our scripts directory
+            guard plistData.scriptPath.hasPrefix(settings.scriptsDirectory) else { return nil }
+
             // Parse wrapper script for prompt/cwd/tools
             let scriptData = ScriptParser.parse(at: plistData.scriptPath)
 
