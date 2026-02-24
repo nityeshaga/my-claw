@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 @main
 struct MyClawApp: App {
@@ -11,6 +12,8 @@ struct MyClawApp: App {
                 .environmentObject(dataStore)
                 .frame(minWidth: 900, minHeight: 600)
                 .onAppear {
+                    NSApp.setActivationPolicy(.regular)
+                    NSApp.activate(ignoringOtherApps: true)
                     dataStore.load()
                     NotificationService.setup()
                 }
