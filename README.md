@@ -20,7 +20,8 @@ My Claw reads the same filesystem data that Claude Code produces — JSONL sessi
 
 **Job Manager**
 - List all Claude scheduled jobs with load/unload toggles
-- Create new jobs with a visual editor: name, prompt, working directory, schedule, allowed tools
+- **AI-powered job creation**: describe what you want in plain English, pick a schedule, and Claude generates the complete wrapper script with the right `--allowedTools`, `--mcp-config`, working directory, and flags — just like the `/schedule-claude` command
+- Review the generated script before confirming
 - Schedule picker: interval (every N minutes), daily at time, or specific weekdays
 - Delete jobs (unloads from launchd and removes script + plist files)
 
@@ -89,45 +90,22 @@ swift build -c release
 # Binary is at .build/release/MyClaw
 ```
 
-### 3. Schedule jobs (optional)
+### 3. Schedule jobs
 
-To create scheduled Claude jobs that My Claw can monitor, use the Job Manager (sidebar > Scheduled Jobs > +) or create them manually:
+Click **"New Claude"** in the sidebar and describe what you want:
 
-1. Write a wrapper script in `~/.claude/scripts/my-job.sh`:
-```bash
-#!/bin/bash
-LOG="$HOME/.my-job.log"
-echo "=== Started at $(date) ===" >> "$LOG"
-cd /path/to/project
+> "Check Granola for new meetings every 30 minutes and summarize them"
 
-~/.local/bin/claude -p "Your prompt here" \
-  --dangerously-skip-permissions >> "$LOG" 2>&1
+> "Search for AI lab announcements daily and draft an email about what's relevant to our consulting"
 
-echo "=== Finished at $(date) ===" >> "$LOG"
-```
+Pick a schedule, hit **Generate Job**, and Claude will create the complete wrapper script with the right tools, MCP config, and working directory. Review it, then click **Create & Load**.
 
-2. Create a launchd plist in `~/Library/LaunchAgents/com.yourname.my-job.plist`:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.yourname.my-job</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/Users/yourname/.claude/scripts/my-job.sh</string>
-    </array>
-    <key>StartInterval</key>
-    <integer>1800</integer>
-    <key>RunAtLoad</key>
-    <true/>
-</dict>
-</plist>
-```
+Under the hood, this creates:
+- A wrapper script at `~/.claude/scripts/<name>.sh`
+- A launchd plist at `~/Library/LaunchAgents/com.<username>.<name>.plist`
+- Loads it into launchd immediately
 
-3. Load it: `launchctl load ~/Library/LaunchAgents/com.yourname.my-job.plist`
+You can also create jobs manually if you prefer — see the [schedule-claude command](https://github.com/every-consulting) for the manual pattern.
 
 ## Architecture
 
@@ -167,7 +145,7 @@ MyClaw/Sources/MyClaw/
 |------|------|--------|
 | Session index | `~/.claude/job-monitor/jobs-index.jsonl` | JSONL |
 | Transcripts | `~/.claude/projects/.../<session-id>.jsonl` | JSONL |
-| Scheduled jobs | `~/Library/LaunchAgents/com.*.plist` | XML plist |
+| Scheduled jobs | `~/Library/LaunchAgents/com.*.plist` (filtered to `~/.claude/scripts/`) | XML plist |
 | Wrapper scripts | `~/.claude/scripts/*.sh` | Bash |
 | Job status | `launchctl list <label>` | CLI |
 
