@@ -26,6 +26,10 @@ class ClaudeCLI: ObservableObject {
         }
         process.arguments = args
 
+        var env = ProcessInfo.processInfo.environment
+        env.removeValue(forKey: "CLAUDECODE")
+        process.environment = env
+
         if let cwd = workingDirectory {
             process.currentDirectoryURL = URL(fileURLWithPath: cwd)
         }

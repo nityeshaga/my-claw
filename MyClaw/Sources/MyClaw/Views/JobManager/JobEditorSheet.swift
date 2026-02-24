@@ -196,6 +196,11 @@ struct JobEditorSheet: View {
         process.executableURL = URL(fileURLWithPath: settings.claudeBinaryPath)
         process.arguments = ["-p", metaPrompt, "--output-format", "text"]
 
+        // Clear CLAUDECODE so claude doesn't refuse to run inside another session
+        var env = ProcessInfo.processInfo.environment
+        env.removeValue(forKey: "CLAUDECODE")
+        process.environment = env
+
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
