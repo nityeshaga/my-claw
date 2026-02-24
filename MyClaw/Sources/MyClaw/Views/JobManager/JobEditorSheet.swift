@@ -72,12 +72,9 @@ struct JobEditorSheet: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("What should this Claude do?")
                                 .font(.subheadline).fontWeight(.medium)
-                            TextEditor(text: $description)
-                                .frame(minHeight: 100)
-                                .scrollContentBackground(.hidden)
-                                .padding(6)
-                                .background(.primary.opacity(0.03), in: RoundedRectangle(cornerRadius: 6))
-                                .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(.quaternary))
+                            TextField("e.g. Check Granola for new meetings and summarize them", text: $description, axis: .vertical)
+                                .lineLimit(4...10)
+                                .textFieldStyle(.roundedBorder)
                             Text("Describe in natural language. Claude will figure out the right tools, MCP config, working directory, and flags.")
                                 .font(.caption).foregroundStyle(.tertiary)
                         }
