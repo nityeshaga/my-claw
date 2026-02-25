@@ -6,12 +6,12 @@ struct TimelineView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("7-Day Activity")
-                .font(.headline)
+            ArcadeSectionHeader(title: "7-Day Activity", color: Theme.neonPurple)
 
             if chartData.isEmpty {
                 Text("No session data available.")
-                    .foregroundStyle(.secondary)
+                    .font(Theme.bodyText)
+                    .foregroundStyle(Theme.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 30)
             } else {
@@ -20,24 +20,36 @@ struct TimelineView: View {
                         x: .value("Day", item.date, unit: .day),
                         y: .value("Sessions", item.count)
                     )
-                    .foregroundStyle(.blue.gradient)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Theme.neonCyan, Theme.neonPurple],
+                            startPoint: .bottom,
+                            endPoint: .top
+                        )
+                    )
                     .cornerRadius(4)
                 }
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .day)) { _ in
-                        AxisGridLine()
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(Color.white.opacity(0.06))
                         AxisValueLabel(format: .dateTime.weekday(.abbreviated))
+                            .foregroundStyle(Theme.textTertiary)
                     }
                 }
-                .frame(height: 120)
+                .chartYAxis {
+                    AxisMarks { _ in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(Color.white.opacity(0.06))
+                        AxisValueLabel()
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+                }
+                .frame(height: 140)
             }
         }
         .padding()
-        .background(.background, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(.quaternary, lineWidth: 1)
-        )
+        .arcadeCard(borderColor: Theme.neonPurple.opacity(0.25))
     }
 
     private var chartData: [DayCount] {
@@ -51,7 +63,6 @@ struct TimelineView: View {
         }
 
         var countsByDay: [Date: Int] = [:]
-        // Pre-fill all 7 days
         for dayOffset in 0..<7 {
             if let date = calendar.date(byAdding: .day, value: -dayOffset, to: now) {
                 let dayStart = calendar.startOfDay(for: date)

@@ -5,13 +5,12 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 24) {
                 StatsBarView()
 
                 if !dataStore.jobs.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Scheduled Jobs")
-                            .font(.headline)
+                        ArcadeSectionHeader(title: "Scheduled Jobs", color: Theme.neonCyan)
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 280))], spacing: 12) {
                             ForEach(dataStore.jobs) { job in
                                 JobCardView(job: job)
@@ -21,11 +20,11 @@ struct DashboardView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Recent Sessions")
-                        .font(.headline)
+                    ArcadeSectionHeader(title: "Recent Sessions", color: Theme.coral)
                     if dataStore.sessions.isEmpty {
                         Text("No sessions captured yet.")
-                            .foregroundStyle(.secondary)
+                            .font(Theme.bodyText)
+                            .foregroundStyle(Theme.textTertiary)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.vertical, 40)
                     } else {
@@ -35,6 +34,7 @@ struct DashboardView: View {
             }
             .padding()
         }
+        .background(Theme.bgDeep)
         .navigationTitle("Dashboard")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

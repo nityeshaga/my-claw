@@ -14,7 +14,8 @@ struct SchedulePicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Schedule")
-                .font(.subheadline).fontWeight(.medium)
+                .font(Theme.headingMono)
+                .foregroundStyle(Theme.textSecondary)
 
             Picker("Type", selection: $scheduleType) {
                 ForEach(JobEditorSheet.ScheduleType.allCases, id: \.self) { type in
@@ -27,15 +28,21 @@ struct SchedulePicker: View {
             case .interval:
                 HStack {
                     Text("Every")
+                        .font(Theme.dataMono)
+                        .foregroundStyle(Theme.textSecondary)
                     TextField("30", value: $intervalMinutes, format: .number)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 60)
                     Text("minutes")
+                        .font(Theme.dataMono)
+                        .foregroundStyle(Theme.textSecondary)
                 }
 
             case .daily:
                 HStack {
                     Text("At")
+                        .font(Theme.dataMono)
+                        .foregroundStyle(Theme.textSecondary)
                     Picker("Hour", selection: $calendarHour) {
                         ForEach(0..<24, id: \.self) { h in
                             Text(String(format: "%02d", h)).tag(h)
@@ -43,6 +50,7 @@ struct SchedulePicker: View {
                     }
                     .frame(width: 60)
                     Text(":")
+                        .font(Theme.dataMono)
                     Picker("Minute", selection: $calendarMinute) {
                         ForEach([0, 15, 30, 45], id: \.self) { m in
                             Text(String(format: "%02d", m)).tag(m)
@@ -54,6 +62,8 @@ struct SchedulePicker: View {
             case .weekdays:
                 HStack {
                     Text("At")
+                        .font(Theme.dataMono)
+                        .foregroundStyle(Theme.textSecondary)
                     Picker("Hour", selection: $calendarHour) {
                         ForEach(0..<24, id: \.self) { h in
                             Text(String(format: "%02d", h)).tag(h)
@@ -61,6 +71,7 @@ struct SchedulePicker: View {
                     }
                     .frame(width: 60)
                     Text(":")
+                        .font(Theme.dataMono)
                     Picker("Minute", selection: $calendarMinute) {
                         ForEach([0, 15, 30, 45], id: \.self) { m in
                             Text(String(format: "%02d", m)).tag(m)
@@ -79,14 +90,14 @@ struct SchedulePicker: View {
                             }
                         } label: {
                             Text(name)
-                                .font(.caption)
+                                .font(Theme.captionMono)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(
-                                    selectedWeekdays.contains(day) ? Color.accentColor : Color.primary.opacity(0.05),
+                                    selectedWeekdays.contains(day) ? Theme.coral : Color.white.opacity(0.05),
                                     in: RoundedRectangle(cornerRadius: 6)
                                 )
-                                .foregroundStyle(selectedWeekdays.contains(day) ? .white : .primary)
+                                .foregroundStyle(selectedWeekdays.contains(day) ? .white : Theme.textSecondary)
                         }
                         .buttonStyle(.plain)
                     }

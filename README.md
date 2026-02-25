@@ -77,16 +77,31 @@ The hook script captures each session's ID, transcript path, working directory, 
 
 ### 2. Install the app
 
+#### Download (recommended)
+
+1. Go to the [latest release](https://github.com/nityeshaga/my-claw/releases/latest)
+2. Download `My.Claw.zip`
+3. Unzip it
+4. Drag `My Claw.app` to your `/Applications` folder
+5. On first launch, macOS will warn about an unidentified developer. To open it:
+   - Right-click (or Control-click) the app in Finder
+   - Click **Open**
+   - Click **Open** again in the dialog
+
+   You only need to do this once — after that it opens normally.
+
+The app checks for updates automatically. You can also check manually via **My Claw > Check for Updates...** in the menu bar, or in **Settings > Updates**.
+
+#### Build from source
+
+If you prefer to build it yourself:
+
 ```bash
+git clone https://github.com/nityeshaga/my-claw.git
+cd my-claw
 ./scripts/bundle-app.sh
 cp -r "dist/My Claw.app" /Applications/
 ```
-
-This builds a release binary, packages it into a proper `My Claw.app` bundle, and copies it to Applications. You can then:
-
-- Launch from **Spotlight**: Cmd+Space, type "My Claw"
-- Pin to **Dock**: right-click the icon while running > Options > Keep in Dock
-- Find in **Launchpad** and **Applications** folder
 
 To rebuild after code changes:
 ```bash

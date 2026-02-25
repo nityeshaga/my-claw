@@ -13,8 +13,8 @@ struct MessageBubble: View {
                 // Timestamp
                 if let ts = entry.timestamp {
                     Text(DateFormatting.timeString(from: ts))
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .font(Theme.codeMono)
+                        .foregroundStyle(Theme.textTertiary)
                 }
 
                 // Content
@@ -23,8 +23,11 @@ struct MessageBubble: View {
                     Text(text)
                         .textSelection(.enabled)
                         .padding(10)
-                        .background(bubbleBackground)
-                        .cornerRadius(12)
+                        .background(bubbleBackground, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(bubbleBorder, lineWidth: 1)
+                        )
 
                 case .toolCall(let tc):
                     ToolCallCard(toolCall: tc)
@@ -44,15 +47,18 @@ struct MessageBubble: View {
                         }
                     }
                     .padding(10)
-                    .background(bubbleBackground)
-                    .cornerRadius(12)
+                    .background(bubbleBackground, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(bubbleBorder, lineWidth: 1)
+                    )
                 }
 
                 // Token usage
                 if let usage = entry.usage {
                     Text("in: \(DateFormatting.tokenString(usage.inputTokens)) / out: \(DateFormatting.tokenString(usage.outputTokens))")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .font(Theme.codeMono)
+                        .foregroundStyle(Theme.textTertiary)
                 }
             }
 
@@ -64,10 +70,19 @@ struct MessageBubble: View {
 
     private var bubbleBackground: Color {
         switch entry.type {
-        case .user: return .blue.opacity(0.15)
-        case .assistant: return .primary.opacity(0.06)
-        case .toolUse, .toolResult: return .orange.opacity(0.1)
-        default: return .primary.opacity(0.04)
+        case .user: return Theme.coral.opacity(0.12)
+        case .assistant: return Theme.neonCyan.opacity(0.06)
+        case .toolUse, .toolResult: return Theme.neonAmber.opacity(0.08)
+        default: return Color.white.opacity(0.04)
+        }
+    }
+
+    private var bubbleBorder: Color {
+        switch entry.type {
+        case .user: return Theme.coral.opacity(0.2)
+        case .assistant: return Theme.neonCyan.opacity(0.12)
+        case .toolUse, .toolResult: return Theme.neonAmber.opacity(0.15)
+        default: return Color.white.opacity(0.08)
         }
     }
 }

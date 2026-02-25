@@ -10,12 +10,14 @@ struct MyClawApp: App {
         WindowGroup {
             ContentView(showNewSession: $showNewSession)
                 .environmentObject(dataStore)
+                .preferredColorScheme(.dark)
                 .frame(minWidth: 900, minHeight: 600)
                 .onAppear {
                     NSApp.setActivationPolicy(.regular)
                     NSApp.activate(ignoringOtherApps: true)
                     dataStore.load()
                     NotificationService.setup()
+                    UpdateChecker.shared.checkIfNeeded()
                 }
                 .sheet(isPresented: $showNewSession) {
                     NewSessionView()
@@ -31,6 +33,11 @@ struct MyClawApp: App {
                     showNewSession = true
                 }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
+            }
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates...") {
+                    UpdateChecker.shared.check()
+                }
             }
         }
 
@@ -66,35 +73,85 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selection) {
-                Section("Overview") {
-                    Label("Dashboard", systemImage: "square.grid.2x2")
-                        .tag(SidebarItem.dashboard)
+            VStack(alignment: .leading, spacing: 0) {
+                // Logo / title area
+                HStack(spacing: 8) {
+                    Image(systemName: "arcade.stick")
+                        .font(.title2)
+                        .foregroundStyle(Theme.coral)
+                        .shadow(color: Theme.coral.opacity(0.5), radius: 6)
+                    Text("MY CLAW")
+                        .font(Theme.titleMono)
+                        .foregroundStyle(Theme.cream)
+                        .tracking(3)
                 }
-                Section("Manage") {
-                    Label("Scheduled Jobs", systemImage: "clock.badge.checkmark")
-                        .tag(SidebarItem.jobs)
-                    Label("Sessions", systemImage: "text.bubble")
-                        .tag(SidebarItem.sessions)
-                }
-                Section {
-                    Label("Settings", systemImage: "gear")
-                        .tag(SidebarItem.settings)
-                }
-            }
-            .listStyle(.sidebar)
-            .navigationTitle("My Claw")
-            .safeAreaInset(edge: .bottom) {
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
+
+                // Section: Overview
+                SidebarSection(title: "OVERVIEW")
+                SidebarRow(
+                    label: "Dashboard",
+                    icon: "square.grid.2x2",
+                    color: Theme.neonCyan,
+                    isSelected: selection == .dashboard
+                ) { selection = .dashboard }
+
+                // Section: Manage
+                SidebarSection(title: "MANAGE")
+                SidebarRow(
+                    label: "Scheduled Jobs",
+                    icon: "clock.badge.checkmark",
+                    color: Theme.neonAmber,
+                    isSelected: selection == .jobs
+                ) { selection = .jobs }
+                SidebarRow(
+                    label: "Sessions",
+                    icon: "text.bubble",
+                    color: Theme.neonPurple,
+                    isSelected: selection == .sessions
+                ) { selection = .sessions }
+
+                // Divider
+                Rectangle()
+                    .fill(Color.white.opacity(0.06))
+                    .frame(height: 1)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+
+                SidebarRow(
+                    label: "Settings",
+                    icon: "gear",
+                    color: Theme.textSecondary,
+                    isSelected: selection == .settings
+                ) { selection = .settings }
+
+                Spacer()
+
+                // New Claude button with glow
                 Button {
                     showJobEditor = true
                 } label: {
-                    Label("New Claude", systemImage: "plus.circle.fill")
-                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                        Text("NEW CLAUDE")
+                            .font(Theme.headingMono)
+                            .tracking(1)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Theme.coral, in: RoundedRectangle(cornerRadius: 10))
+                    .foregroundStyle(.white)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .padding()
+                .buttonStyle(.plain)
+                .shadow(color: Theme.coral.opacity(0.5), radius: 12)
+                .shadow(color: Theme.coral.opacity(0.2), radius: 20)
+                .padding(16)
             }
+            .frame(minWidth: 200, idealWidth: 220, maxWidth: 260)
+            .background(Theme.bgDeep)
             .sheet(isPresented: $showJobEditor) {
                 JobEditorSheet { dataStore.refresh() }
                     .frame(minWidth: 500, minHeight: 400)
@@ -136,12 +193,14 @@ struct AllSessionsView: View {
             if dataStore.sessions.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "text.bubble")
-                        .font(.largeTitle)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.displayMono)
+                        .foregroundStyle(Theme.textTertiary)
                     Text("No Sessions")
-                        .font(.headline)
+                        .font(Theme.headingMono)
+                        .foregroundStyle(Theme.textPrimary)
                     Text("Sessions will appear here after Claude runs complete.")
-                        .foregroundStyle(.secondary)
+                        .font(Theme.bodyText)
+                        .foregroundStyle(Theme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -151,6 +210,7 @@ struct AllSessionsView: View {
                 }
             }
         }
+        .background(Theme.bgDeep)
         .navigationTitle("Sessions (\(dataStore.sessions.count))")
         .searchable(text: $searchText, prompt: "Search sessions...")
         .toolbar {
@@ -174,40 +234,45 @@ struct MenuBarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("My Claw")
-                .font(.headline)
+                .font(Theme.headingMono)
+                .foregroundStyle(Theme.textPrimary)
 
             Divider()
 
             // Quick stats
             HStack {
                 Label("\(dataStore.jobs.count) jobs", systemImage: "clock")
+                    .foregroundStyle(Theme.neonCyan)
                 Spacer()
                 Label("\(dataStore.sessionsToday.count) today", systemImage: "text.bubble")
+                    .foregroundStyle(Theme.success)
             }
-            .font(.caption)
+            .font(Theme.captionMono)
 
             Divider()
 
             // Recent sessions
             Text("Recent")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(Theme.captionMono)
+                .foregroundStyle(Theme.textTertiary)
 
             ForEach(Array(dataStore.sessions.prefix(3))) { session in
                 HStack {
-                    Circle()
-                        .fill(StatusColor.forReason(session.reason))
-                        .frame(width: 6, height: 6)
+                    StatusDot(
+                        color: StatusColor.forReason(session.reason),
+                        size: 6
+                    )
                     Text(session.projectName)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textPrimary)
                         .lineLimit(1)
                     Spacer()
                     if let date = session.finishedDate {
                         Text(DateFormatting.relativeString(from: date))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .font(Theme.codeMono)
+                            .foregroundStyle(Theme.textTertiary)
                     }
                 }
-                .font(.caption)
             }
 
             Divider()
@@ -230,5 +295,76 @@ struct MenuBarView: View {
         }
         .padding(8)
         .frame(width: 240)
+    }
+}
+
+// MARK: - Custom Sidebar Components
+
+struct SidebarSection: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(Theme.codeMono)
+            .foregroundStyle(Theme.textTertiary)
+            .tracking(2)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 4)
+    }
+}
+
+struct SidebarRow: View {
+    let label: String
+    let icon: String
+    let color: Color
+    let isSelected: Bool
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.body)
+                    .foregroundStyle(isSelected ? color : Theme.textSecondary)
+                    .shadow(color: isSelected ? color.opacity(0.5) : .clear, radius: 4)
+                    .frame(width: 22)
+                Text(label)
+                    .font(Theme.dataMono)
+                    .foregroundStyle(isSelected ? Theme.textPrimary : Theme.textSecondary)
+                Spacer()
+                if isSelected {
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: 3, height: 18)
+                        .cornerRadius(2)
+                        .shadow(color: color.opacity(0.6), radius: 4)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(
+                    isSelected
+                        ? color.opacity(0.12)
+                        : (isHovered ? Color.white.opacity(0.04) : Color.clear)
+                )
+                .padding(.horizontal, 8)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(
+                    isSelected ? color.opacity(0.3) : Color.clear,
+                    lineWidth: 1
+                )
+                .padding(.horizontal, 8)
+        )
+        .onHover { isHovered = $0 }
     }
 }

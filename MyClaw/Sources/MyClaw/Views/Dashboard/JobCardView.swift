@@ -3,55 +3,57 @@ import SwiftUI
 struct JobCardView: View {
     let job: Job
 
+    private var statusColor: Color {
+        StatusColor.forJobStatus(job.status)
+    }
+
+    private var isRunning: Bool {
+        job.status == .running
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Circle()
-                    .fill(StatusColor.forJobStatus(job.status))
-                    .frame(width: 8, height: 8)
+                StatusDot(
+                    color: statusColor,
+                    size: 10,
+                    isPulsing: isRunning
+                )
                 Text(job.name)
-                    .font(.headline)
+                    .font(Theme.headingMono)
+                    .foregroundStyle(Theme.textPrimary)
                 Spacer()
-                Text(job.status.rawValue)
-                    .font(.caption)
-                    .foregroundStyle(StatusColor.forJobStatus(job.status))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(StatusColor.forJobStatus(job.status).opacity(0.1), in: Capsule())
+                ArcadeBadge(text: job.status.rawValue, color: statusColor)
             }
 
             HStack {
                 Image(systemName: "clock")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(Theme.captionMono)
+                    .foregroundStyle(statusColor.opacity(0.6))
                 Text(job.schedule.displayString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(Theme.captionMono)
+                    .foregroundStyle(Theme.textSecondary)
             }
 
             if let exitCode = job.lastExitCode {
                 HStack {
                     Image(systemName: exitCode == 0 ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .font(.caption)
+                        .font(Theme.captionMono)
                         .foregroundStyle(StatusColor.forExitCode(exitCode))
                     Text("Last exit: \(exitCode)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textSecondary)
                 }
             }
 
             if let prompt = job.prompt {
                 Text(prompt.prefix(80) + (prompt.count > 80 ? "..." : ""))
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .font(Theme.codeMono)
+                    .foregroundStyle(Theme.textTertiary)
                     .lineLimit(2)
             }
         }
         .padding()
-        .background(.background, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(.quaternary, lineWidth: 1)
-        )
+        .statusCard(statusColor, isActive: isRunning)
     }
 }
