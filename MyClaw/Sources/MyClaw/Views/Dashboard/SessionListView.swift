@@ -4,85 +4,107 @@ struct SessionListView: View {
     let sessions: [SessionRun]
 
     var body: some View {
-        VStack(spacing: 1) {
+        VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Session")
+                Text("SESSION")
                     .frame(width: 80, alignment: .leading)
-                Text("Project")
+                Text("PROJECT")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Turns")
+                Text("TURNS")
                     .frame(width: 50, alignment: .trailing)
-                Text("Tokens")
+                Text("TOKENS")
                     .frame(width: 70, alignment: .trailing)
-                Text("Duration")
+                Text("DURATION")
                     .frame(width: 80, alignment: .trailing)
-                Text("Finished")
+                Text("FINISHED")
                     .frame(width: 100, alignment: .trailing)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .font(Theme.codeMono)
+            .foregroundStyle(Theme.textTertiary)
+            .tracking(1)
             .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
 
-            ForEach(sessions) { session in
-                SessionRowView(session: session)
+            ForEach(Array(sessions.enumerated()), id: \.element.id) { index, session in
+                SessionRowView(session: session, isEven: index % 2 == 0)
             }
         }
-        .background(.background, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(.quaternary, lineWidth: 1)
-        )
+        .arcadeCard(borderColor: Theme.coral.opacity(0.2))
     }
 }
 
 struct SessionRowView: View {
     let session: SessionRun
+    let isEven: Bool
     @State private var showTranscript = false
+    @State private var isHovered = false
 
     var body: some View {
         Button {
             showTranscript = true
         } label: {
             HStack {
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(StatusColor.forReason(session.reason))
-                        .frame(width: 6, height: 6)
+                HStack(spacing: 6) {
+                    StatusDot(
+                        color: StatusColor.forReason(session.reason),
+                        size: 8
+                    )
                     Text(session.shortSessionId)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(Theme.codeMono)
+                        .foregroundStyle(Theme.neonCyan)
                 }
                 .frame(width: 80, alignment: .leading)
 
                 Text(session.projectName)
+                    .font(Theme.dataMono)
+                    .foregroundStyle(Theme.textPrimary)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(session.numTurns.map(String.init) ?? "-")
+                    .font(Theme.dataMono)
+                    .foregroundStyle(Theme.textSecondary)
                     .frame(width: 50, alignment: .trailing)
 
                 Text(session.totalTokens > 0 ? DateFormatting.tokenString(session.totalTokens) : "-")
+                    .font(Theme.dataMono)
+                    .foregroundStyle(Theme.neonAmber)
                     .frame(width: 70, alignment: .trailing)
 
                 Text(session.durationSeconds.map { DateFormatting.durationString(seconds: $0) } ?? "-")
+                    .font(Theme.dataMono)
+                    .foregroundStyle(Theme.textSecondary)
                     .frame(width: 80, alignment: .trailing)
 
                 if let date = session.finishedDate {
                     Text(DateFormatting.relativeString(from: date))
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textTertiary)
                         .frame(width: 100, alignment: .trailing)
                 } else {
                     Text("-")
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textTertiary)
                         .frame(width: 100, alignment: .trailing)
                 }
             }
-            .font(.callout)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(Color.primary.opacity(0.02))
+        .background(
+            isHovered
+                ? Theme.surfaceElevated
+                : (isEven ? Color.white.opacity(0.02) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .strokeBorder(Theme.coral.opacity(isHovered ? 0.3 : 0), lineWidth: 1)
+                .padding(.horizontal, 2)
+        )
+        .onHover { isHovered = $0 }
         .sheet(isPresented: $showTranscript) {
             TranscriptView(session: session)
                 .frame(minWidth: 700, minHeight: 500)

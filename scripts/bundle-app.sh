@@ -8,6 +8,14 @@ APP_NAME="My Claw"
 BUNDLE_ID="com.nityesh.my-claw"
 APP_DIR="$PROJECT_DIR/dist/$APP_NAME.app"
 
+# Extract version from UpdateChecker.swift (single source of truth)
+VERSION=$(grep 'static let currentVersion' "$PROJECT_DIR/MyClaw/Sources/MyClaw/Services/UpdateChecker.swift" | sed 's/.*"\(.*\)".*/\1/')
+if [ -z "$VERSION" ]; then
+    VERSION="1.0.0"
+    echo "Warning: Could not extract version, defaulting to $VERSION"
+fi
+echo "Version: $VERSION"
+
 echo "Building release binary..."
 cd "$PROJECT_DIR/MyClaw"
 swift build -c release
@@ -27,7 +35,7 @@ if [ -f "$PROJECT_DIR/MyClaw/Sources/MyClaw/Resources/AppIcon.icns" ]; then
 fi
 
 # Create Info.plist
-cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
+cat > "$APP_DIR/Contents/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -39,9 +47,9 @@ cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
     <key>CFBundleIdentifier</key>
     <string>com.nityesh.my-claw</string>
     <key>CFBundleVersion</key>
-    <string>1.0.0</string>
+    <string>$VERSION</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>$VERSION</string>
     <key>CFBundleExecutable</key>
     <string>MyClaw</string>
     <key>CFBundlePackageType</key>

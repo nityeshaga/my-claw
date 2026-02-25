@@ -12,16 +12,17 @@ struct TranscriptView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Transcript")
-                        .font(.headline)
+                        .font(Theme.headingMono)
+                        .foregroundStyle(Theme.textPrimary)
                     Text("\(session.projectName) — \(session.shortSessionId)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textSecondary)
                 }
                 Spacer()
                 if let date = session.finishedDate {
                     Text(DateFormatting.dateTimeString(from: date))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textTertiary)
                 }
                 Button("Close") { dismiss() }
                     .keyboardShortcut(.escape)
@@ -33,11 +34,13 @@ struct TranscriptView: View {
             if isLoading {
                 Spacer()
                 ProgressView("Loading transcript...")
+                    .foregroundStyle(Theme.textSecondary)
                 Spacer()
             } else if entries.isEmpty {
                 Spacer()
                 Text("No transcript entries found.")
-                    .foregroundStyle(.secondary)
+                    .font(Theme.bodyText)
+                    .foregroundStyle(Theme.textTertiary)
                 Spacer()
             } else {
                 ScrollView {
@@ -56,6 +59,7 @@ struct TranscriptView: View {
                 TranscriptFooter(session: session, entries: entries)
             }
         }
+        .preferredColorScheme(.dark)
         .task {
             entries = await loadTranscript()
             isLoading = false
@@ -81,15 +85,18 @@ struct TranscriptFooter: View {
     var body: some View {
         HStack(spacing: 20) {
             Label("\(entries.filter(\.isUserMessage).count) messages", systemImage: "person")
+                .foregroundStyle(Theme.coral)
             Label("\(entries.filter(\.isAssistantMessage).count) responses", systemImage: "cpu")
+                .foregroundStyle(Theme.neonCyan)
             Label("\(entries.filter(\.isToolRelated).count) tool calls", systemImage: "wrench")
+                .foregroundStyle(Theme.neonAmber)
             Spacer()
             if totalInput > 0 || totalOutput > 0 {
                 Text("Input: \(DateFormatting.tokenString(totalInput)) / Output: \(DateFormatting.tokenString(totalOutput))")
+                    .foregroundStyle(Theme.textSecondary)
             }
         }
-        .font(.caption)
-        .foregroundStyle(.secondary)
+        .font(Theme.captionMono)
         .padding(.horizontal)
         .padding(.vertical, 8)
     }

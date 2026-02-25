@@ -28,7 +28,8 @@ struct JobEditorSheet: View {
         VStack(spacing: 0) {
             HStack {
                 Text("Schedule a new Claude")
-                    .font(.headline)
+                    .font(Theme.headingMono)
+                    .foregroundStyle(Theme.textPrimary)
                 Spacer()
                 Button("Cancel") { dismiss() }
             }
@@ -37,7 +38,6 @@ struct JobEditorSheet: View {
             Divider()
 
             if let script = generatedScript, let name = generatedName {
-                // Review step
                 ReviewView(
                     name: name,
                     script: script,
@@ -46,17 +46,17 @@ struct JobEditorSheet: View {
                     onRegenerate: { regenerate() }
                 )
             } else if isGenerating {
-                // Generating step
                 VStack(spacing: 12) {
                     Spacer()
                     ProgressView()
                     Text("Claude is generating your job...")
-                        .foregroundStyle(.secondary)
+                        .font(Theme.bodyText)
+                        .foregroundStyle(Theme.textSecondary)
                     if !claudeOutput.isEmpty {
                         ScrollView {
                             Text(claudeOutput)
-                                .font(.system(.caption, design: .monospaced))
-                                .foregroundStyle(.tertiary)
+                                .font(Theme.codeMono)
+                                .foregroundStyle(Theme.textTertiary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding()
                         }
@@ -66,17 +66,19 @@ struct JobEditorSheet: View {
                 }
                 .padding()
             } else {
-                // Input step
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("What should this Claude do?")
-                                .font(.subheadline).fontWeight(.medium)
+                                .font(Theme.headingMono)
+                                .foregroundStyle(Theme.textSecondary)
                             TextField("e.g. Check Granola for new meetings and summarize them", text: $description, axis: .vertical)
                                 .lineLimit(4...10)
+                                .font(Theme.bodyText)
                                 .textFieldStyle(.roundedBorder)
                             Text("Describe in natural language. Claude will figure out the right tools, MCP config, working directory, and flags.")
-                                .font(.caption).foregroundStyle(.tertiary)
+                                .font(Theme.codeMono)
+                                .foregroundStyle(Theme.textTertiary)
                         }
 
                         SchedulePicker(
@@ -89,8 +91,8 @@ struct JobEditorSheet: View {
 
                         if let error = errorMessage {
                             Text(error)
-                                .font(.caption)
-                                .foregroundStyle(.red)
+                                .font(Theme.captionMono)
+                                .foregroundStyle(Theme.error)
                         }
                     }
                     .padding()
@@ -105,11 +107,12 @@ struct JobEditorSheet: View {
                 } else if isGenerating {
                     Spacer()
                     Text("Generating...")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textSecondary)
                 } else {
                     Spacer()
                     Button("Generate Job") { generate() }
+                        .tint(Theme.coral)
                         .disabled(description.trimmingCharacters(in: .whitespaces).isEmpty)
                         .keyboardShortcut(.return, modifiers: .command)
                 }
@@ -117,6 +120,7 @@ struct JobEditorSheet: View {
             }
             .padding()
         }
+        .preferredColorScheme(.dark)
     }
 
     private func buildSchedule() -> JobSchedule {
@@ -196,7 +200,6 @@ struct JobEditorSheet: View {
         process.executableURL = URL(fileURLWithPath: settings.claudeBinaryPath)
         process.arguments = ["-p", metaPrompt, "--output-format", "text"]
 
-        // Clear CLAUDECODE so claude doesn't refuse to run inside another session
         var env = ProcessInfo.processInfo.environment
         env.removeValue(forKey: "CLAUDECODE")
         process.environment = env
@@ -240,10 +243,8 @@ struct JobEditorSheet: View {
     }
 
     private func parseGeneratedOutput(_ output: String) {
-        // Try to extract JSON from the output
         let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Strip markdown fences if present
         var jsonStr = trimmed
         if jsonStr.hasPrefix("```") {
             let lines = jsonStr.split(separator: "\n", omittingEmptySubsequences: false)
@@ -269,17 +270,14 @@ struct JobEditorSheet: View {
         let scriptPath = "\(settings.scriptsDirectory)/\(name).sh"
         let plistPath = "\(settings.launchAgentsDirectory)/com.\(username).\(name).plist"
 
-        // Create scripts directory
         try? FileManager.default.createDirectory(atPath: settings.scriptsDirectory, withIntermediateDirectories: true)
 
-        // Write script
         guard FileManager.default.createFile(atPath: scriptPath, contents: script.data(using: .utf8)) else {
             errorMessage = "Failed to write script."
             return
         }
         try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptPath)
 
-        // Write plist
         let schedule = buildSchedule()
         let plistContent = generatePlist(label: "com.\(username).\(name)", scriptPath: scriptPath, schedule: schedule)
         guard FileManager.default.createFile(atPath: plistPath, contents: plistContent.data(using: .utf8)) else {
@@ -287,7 +285,6 @@ struct JobEditorSheet: View {
             return
         }
 
-        // Load
         if !LaunchdManager.load(plistPath: plistPath) {
             errorMessage = "Files created but failed to load into launchd."
             return
@@ -371,34 +368,35 @@ struct ReviewView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label(name, systemImage: "terminal")
-                    .font(.headline)
+                    .font(Theme.headingMono)
+                    .foregroundStyle(Theme.textPrimary)
                 Spacer()
-                Text(schedule.displayString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(.primary.opacity(0.06), in: Capsule())
+                ArcadeBadge(text: schedule.displayString, color: Theme.neonCyan)
             }
 
             Text("Review the generated script:")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(Theme.bodyText)
+                .foregroundStyle(Theme.textSecondary)
 
             ScrollView {
                 Text(script)
-                    .font(.system(.caption, design: .monospaced))
+                    .font(Theme.captionMono)
+                    .foregroundStyle(Theme.textSecondary)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(10)
             }
-            .background(.primary.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.quaternary))
+            .background(Theme.surfaceInput, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            )
 
             HStack {
                 Button("Regenerate") { onRegenerate() }
                 Spacer()
                 Button("Create & Load") { onConfirm() }
+                    .tint(Theme.coral)
                     .keyboardShortcut(.return, modifiers: .command)
             }
         }

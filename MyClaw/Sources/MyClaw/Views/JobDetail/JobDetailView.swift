@@ -10,6 +10,10 @@ struct JobDetailView: View {
         dataStore.sessions(for: job)
     }
 
+    private var statusColor: Color {
+        StatusColor.forJobStatus(job.status)
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -17,22 +21,19 @@ struct JobDetailView: View {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 8) {
-                            Circle()
-                                .fill(StatusColor.forJobStatus(job.status))
-                                .frame(width: 10, height: 10)
+                            StatusDot(
+                                color: statusColor,
+                                size: 10,
+                                isPulsing: job.status == .running
+                            )
                             Text(job.name)
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            Text(job.status.rawValue)
-                                .font(.caption)
-                                .foregroundStyle(StatusColor.forJobStatus(job.status))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(StatusColor.forJobStatus(job.status).opacity(0.1), in: Capsule())
+                                .font(Theme.titleMono)
+                                .foregroundStyle(Theme.textPrimary)
+                            ArcadeBadge(text: job.status.rawValue, color: statusColor)
                         }
                         Text(job.label)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(Theme.captionMono)
+                            .foregroundStyle(Theme.textTertiary)
                             .textSelection(.enabled)
                     }
                     Spacer()
@@ -40,6 +41,7 @@ struct JobDetailView: View {
                         Button("Run Now") {
                             showRunConfirm = true
                         }
+                        .tint(Theme.coral)
                         Button("Close") { dismiss() }
                             .keyboardShortcut(.escape)
                         .alert("Run \(job.name) now?", isPresented: $showRunConfirm) {
@@ -67,25 +69,30 @@ struct JobDetailView: View {
                 if let prompt = job.prompt {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Prompt")
-                            .font(.headline)
+                            .font(Theme.headingMono)
+                            .foregroundStyle(Theme.textSecondary)
                         Text(prompt)
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
+                            .font(Theme.bodyText)
+                            .foregroundStyle(Theme.textSecondary)
                             .textSelection(.enabled)
                             .padding(10)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.primary.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))
+                            .background(Theme.surfaceInput, in: RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            )
                     }
                 }
 
                 // Associated sessions
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Run History (\(associatedSessions.count) sessions)")
-                        .font(.headline)
+                    ArcadeSectionHeader(title: "Run History (\(associatedSessions.count) sessions)", color: Theme.neonCyan)
 
                     if associatedSessions.isEmpty {
                         Text("No sessions found for this job's working directory.")
-                            .foregroundStyle(.secondary)
+                            .font(Theme.bodyText)
+                            .foregroundStyle(Theme.textTertiary)
                             .padding(.vertical, 20)
                     } else {
                         RunHistoryTable(sessions: associatedSessions)
@@ -99,6 +106,8 @@ struct JobDetailView: View {
             }
             .padding()
         }
+        .background(Theme.bgDeep)
+        .preferredColorScheme(.dark)
         .navigationTitle(job.name)
     }
 }
@@ -110,10 +119,11 @@ struct MetadataRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                .font(Theme.captionMono)
+                .foregroundStyle(Theme.textTertiary)
             Text(value)
-                .font(.callout)
+                .font(Theme.dataMono)
+                .foregroundStyle(Theme.textPrimary)
                 .textSelection(.enabled)
                 .lineLimit(2)
         }

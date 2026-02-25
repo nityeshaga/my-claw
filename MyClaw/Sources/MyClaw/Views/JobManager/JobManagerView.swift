@@ -12,13 +12,16 @@ struct JobManagerView: View {
             if dataStore.jobs.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "clock.badge.questionmark")
-                        .font(.largeTitle)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.displayMono)
+                        .foregroundStyle(Theme.textTertiary)
                     Text("No Scheduled Jobs")
-                        .font(.headline)
+                        .font(Theme.headingMono)
+                        .foregroundStyle(Theme.textPrimary)
                     Text("Create a job to run Claude on a schedule.")
-                        .foregroundStyle(.secondary)
+                        .font(Theme.bodyText)
+                        .foregroundStyle(Theme.textSecondary)
                     Button("Create Job") { showEditor = true }
+                        .tint(Theme.coral)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -95,16 +98,19 @@ struct JobManagerRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Circle()
-                .fill(StatusColor.forJobStatus(job.status))
-                .frame(width: 8, height: 8)
+            StatusDot(
+                color: StatusColor.forJobStatus(job.status),
+                size: 8,
+                isPulsing: job.status == .running
+            )
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(job.name)
-                    .fontWeight(.medium)
+                    .font(Theme.headingMono)
+                    .foregroundStyle(Theme.textPrimary)
                 Text(job.schedule.displayString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(Theme.captionMono)
+                    .foregroundStyle(Theme.textSecondary)
             }
 
             Spacer()
@@ -114,16 +120,18 @@ struct JobManagerRow: View {
                 set: { _ in onToggle() }
             ))
             .toggleStyle(.switch)
+            .tint(Theme.success)
             .labelsHidden()
 
             Button { onDetail() } label: {
                 Image(systemName: "info.circle")
+                    .foregroundStyle(Theme.neonCyan)
             }
             .buttonStyle(.borderless)
 
             Button { onDelete() } label: {
                 Image(systemName: "trash")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Theme.error)
             }
             .buttonStyle(.borderless)
         }

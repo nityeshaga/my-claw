@@ -13,41 +13,42 @@ struct ToolCallCard: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "wrench.fill")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.neonAmber)
                     Text(toolCall.name)
-                        .font(.callout)
-                        .fontWeight(.medium)
+                        .font(Theme.dataMono)
+                        .foregroundStyle(Theme.textPrimary)
                     Spacer()
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .font(Theme.codeMono)
+                        .foregroundStyle(Theme.textTertiary)
                 }
             }
             .buttonStyle(.plain)
 
             Text(toolCall.inputSummary)
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .font(Theme.captionMono)
+                .foregroundStyle(Theme.textSecondary)
                 .lineLimit(isExpanded ? nil : 2)
 
             if isExpanded {
-                Divider()
+                Rectangle()
+                    .fill(Color.white.opacity(0.06))
+                    .frame(height: 1)
                 ScrollView(.horizontal, showsIndicators: false) {
                     Text(formatInput(toolCall.input))
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundStyle(.tertiary)
+                        .font(Theme.codeMono)
+                        .foregroundStyle(Theme.textTertiary)
                         .textSelection(.enabled)
                 }
                 .frame(maxHeight: 200)
             }
         }
         .padding(10)
-        .background(.orange.opacity(0.08))
-        .cornerRadius(8)
+        .background(Theme.neonAmber.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(.orange.opacity(0.2), lineWidth: 1)
+                .strokeBorder(Theme.neonAmber.opacity(0.15), lineWidth: 1)
         )
     }
 
@@ -73,15 +74,15 @@ struct ToolResultCard: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: result.isError ? "xmark.circle.fill" : "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(result.isError ? .red : .green)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(result.isError ? Theme.error : Theme.success)
                     Text("Result")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textSecondary)
                     Spacer()
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .font(Theme.codeMono)
+                        .foregroundStyle(Theme.textTertiary)
                 }
             }
             .buttonStyle(.plain)
@@ -89,8 +90,8 @@ struct ToolResultCard: View {
             if isExpanded {
                 ScrollView {
                     Text(result.content)
-                        .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .font(Theme.captionMono)
+                        .foregroundStyle(Theme.textSecondary)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -98,7 +99,6 @@ struct ToolResultCard: View {
             }
         }
         .padding(8)
-        .background(.primary.opacity(0.03))
-        .cornerRadius(6)
+        .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 6))
     }
 }
