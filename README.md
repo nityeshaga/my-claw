@@ -75,19 +75,28 @@ Otherwise, create `~/.claude/hooks.json` (or add to your existing hooks) with:
 
 The hook script captures each session's ID, transcript path, working directory, finish reason, timestamps, turn count, and token usage into the JSONL index.
 
-### 2. Build and run
+### 2. Install the app
 
+```bash
+./scripts/bundle-app.sh
+cp -r "dist/My Claw.app" /Applications/
+```
+
+This builds a release binary, packages it into a proper `My Claw.app` bundle, and copies it to Applications. You can then:
+
+- Launch from **Spotlight**: Cmd+Space, type "My Claw"
+- Pin to **Dock**: right-click the icon while running > Options > Keep in Dock
+- Find in **Launchpad** and **Applications** folder
+
+To rebuild after code changes:
+```bash
+./scripts/bundle-app.sh && cp -r "dist/My Claw.app" /Applications/
+```
+
+For development, you can also run directly without installing:
 ```bash
 cd MyClaw
 swift run MyClaw
-```
-
-Or build a release binary:
-
-```bash
-cd MyClaw
-swift build -c release
-# Binary is at .build/release/MyClaw
 ```
 
 ### 3. Schedule jobs
