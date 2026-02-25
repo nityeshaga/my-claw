@@ -20,6 +20,12 @@ mkdir -p "$APP_DIR/Contents/Resources"
 # Copy binary
 cp .build/release/MyClaw "$APP_DIR/Contents/MacOS/MyClaw"
 
+# Copy icon
+if [ -f "$PROJECT_DIR/MyClaw/Sources/MyClaw/Resources/AppIcon.icns" ]; then
+    cp "$PROJECT_DIR/MyClaw/Sources/MyClaw/Resources/AppIcon.icns" "$APP_DIR/Contents/Resources/AppIcon.icns"
+    echo "Icon bundled."
+fi
+
 # Create Info.plist
 cat > "$APP_DIR/Contents/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
