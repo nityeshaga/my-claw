@@ -19,6 +19,14 @@ class AppSettings: ObservableObject {
     @Published var notifyOnFailureOnly: Bool {
         didSet { UserDefaults.standard.set(notifyOnFailureOnly, forKey: "notifyOnFailureOnly") }
     }
+    @Published var hookAutoInstall: Bool {
+        didSet {
+            UserDefaults.standard.set(hookAutoInstall, forKey: "hookAutoInstall")
+            if !hookAutoInstall {
+                HookInstaller.uninstall()
+            }
+        }
+    }
 
     private init() {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
@@ -30,6 +38,7 @@ class AppSettings: ObservableObject {
             ?? "\(home)/.claude/scripts"
         self.showNotifications = UserDefaults.standard.object(forKey: "showNotifications") as? Bool ?? true
         self.notifyOnFailureOnly = UserDefaults.standard.object(forKey: "notifyOnFailureOnly") as? Bool ?? false
+        self.hookAutoInstall = UserDefaults.standard.object(forKey: "hookAutoInstall") as? Bool ?? true
     }
 
     var launchAgentsDirectory: String {

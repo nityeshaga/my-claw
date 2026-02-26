@@ -4,7 +4,7 @@ import Foundation
 final class UpdateChecker: ObservableObject {
     static let shared = UpdateChecker()
 
-    static let currentVersion = "1.0.0"
+    static let currentVersion = AppVersion.current
     private let repo = "nityeshaga/my-claw"
 
     @Published var latestVersion: String?

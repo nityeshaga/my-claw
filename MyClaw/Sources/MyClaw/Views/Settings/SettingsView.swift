@@ -35,6 +35,26 @@ struct SettingsView: View {
                     .disabled(!settings.showNotifications)
             }
 
+            Section("Session Hook") {
+                Toggle("Auto-install session tracking hook", isOn: $settings.hookAutoInstall)
+                    .tint(Theme.success)
+
+                LabeledContent("Status") {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(HookInstaller.isInstalled() ? Theme.success : Theme.textTertiary)
+                            .frame(width: 8, height: 8)
+                        Text(HookInstaller.isInstalled() ? "Installed" : "Not installed")
+                            .font(Theme.dataMono)
+                            .foregroundStyle(Theme.textSecondary)
+                    }
+                }
+
+                Text("Tracks all Claude Code sessions and logs them to the index file for monitoring.")
+                    .font(Theme.captionMono)
+                    .foregroundStyle(Theme.textTertiary)
+            }
+
             Section("Updates") {
                 LabeledContent("Current Version") {
                     Text(UpdateChecker.currentVersion)

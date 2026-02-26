@@ -8,8 +8,8 @@ APP_NAME="My Claw"
 BUNDLE_ID="com.nityesh.my-claw"
 APP_DIR="$PROJECT_DIR/dist/$APP_NAME.app"
 
-# Extract version from UpdateChecker.swift (single source of truth)
-VERSION=$(grep 'static let currentVersion' "$PROJECT_DIR/MyClaw/Sources/MyClaw/Services/UpdateChecker.swift" | sed 's/.*"\(.*\)".*/\1/')
+# Extract version from AppVersion in HookInstaller.swift (single source of truth)
+VERSION=$(grep 'static let current' "$PROJECT_DIR/MyClaw/Sources/MyClaw/Services/HookInstaller.swift" | sed 's/.*"\(.*\)".*/\1/')
 if [ -z "$VERSION" ]; then
     VERSION="1.0.0"
     echo "Warning: Could not extract version, defaulting to $VERSION"

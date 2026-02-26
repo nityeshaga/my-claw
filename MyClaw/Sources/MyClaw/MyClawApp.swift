@@ -15,6 +15,19 @@ struct MyClawApp: App {
                 .onAppear {
                     NSApp.setActivationPolicy(.regular)
                     NSApp.activate(ignoringOtherApps: true)
+                    if AppSettings.shared.hookAutoInstall {
+                        let result = HookInstaller.installIfNeeded()
+                        switch result {
+                        case .installed:
+                            print("[MyClaw] Hook installed successfully")
+                        case .updated:
+                            print("[MyClaw] Hook script updated")
+                        case .failed(let msg):
+                            print("[MyClaw] Hook installation failed: \(msg)")
+                        case .alreadyUpToDate:
+                            break
+                        }
+                    }
                     dataStore.load()
                     NotificationService.setup()
                     UpdateChecker.shared.checkIfNeeded()
