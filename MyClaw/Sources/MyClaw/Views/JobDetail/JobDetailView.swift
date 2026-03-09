@@ -5,6 +5,7 @@ struct JobDetailView: View {
     @EnvironmentObject var dataStore: DataStore
     @Environment(\.dismiss) private var dismiss
     @State private var showRunConfirm = false
+    @State private var runResultMessage: String?
 
     var associatedSessions: [SessionRun] {
         dataStore.sessions(for: job)
@@ -46,9 +47,16 @@ struct JobDetailView: View {
                             .keyboardShortcut(.escape)
                         .alert("Run \(job.name) now?", isPresented: $showRunConfirm) {
                             Button("Run") {
-                                _ = LaunchdManager.start(label: job.label)
+                                let success = LaunchdManager.start(label: job.label)
+                                runResultMessage = success ? "Job started successfully" : "Failed to start job"
                             }
                             Button("Cancel", role: .cancel) {}
+                        }
+                        .alert(runResultMessage ?? "", isPresented: Binding(
+                            get: { runResultMessage != nil },
+                            set: { if !$0 { runResultMessage = nil } }
+                        )) {
+                            Button("OK") { runResultMessage = nil }
                         }
                     }
                 }
