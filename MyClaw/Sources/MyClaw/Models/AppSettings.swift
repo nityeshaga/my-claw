@@ -51,9 +51,11 @@ class AppSettings: ObservableObject {
         self.showNotifications = UserDefaults.standard.object(forKey: "showNotifications") as? Bool ?? true
         self.notifyOnFailureOnly = UserDefaults.standard.object(forKey: "notifyOnFailureOnly") as? Bool ?? false
         self.hookAutoInstall = UserDefaults.standard.object(forKey: "hookAutoInstall") as? Bool ?? true
-        self.notifySlack = UserDefaults.standard.object(forKey: "notifySlack") as? Bool ?? false
-        self.slackWebhookURL = UserDefaults.standard.string(forKey: "slackWebhookURL") ?? ""
-        NotificationConfig.write()
+        let slack = UserDefaults.standard.object(forKey: "notifySlack") as? Bool ?? false
+        let webhook = UserDefaults.standard.string(forKey: "slackWebhookURL") ?? ""
+        self.notifySlack = slack
+        self.slackWebhookURL = webhook
+        NotificationConfig.write(notifySlack: slack, slackWebhookURL: webhook)
     }
 
     var launchAgentsDirectory: String {
