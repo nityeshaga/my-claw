@@ -155,6 +155,29 @@ struct JobEditorSheet: View {
         }
     }
 
+    /// Scan known .mcp.json files and return a description of available MCP servers/tools
+    private func discoverMCPConfigs() -> String {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let knownPaths = [
+            "\(home)/.claude/.mcp.json",
+            "\(home)/Documents/Github/every-consulting/plugins/claudie/.mcp.json",
+        ]
+
+        var descriptions: [String] = []
+        for path in knownPaths {
+            guard let data = FileManager.default.contents(atPath: path),
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let servers = json["mcpServers"] as? [String: Any] else {
+                continue
+            }
+            let serverNames = servers.keys.sorted()
+            let toolPatterns = serverNames.map { "mcp__\($0)__*" }.joined(separator: ", ")
+            descriptions.append("- \(path): servers [\(serverNames.joined(separator: ", "))], tools pattern: \(toolPatterns)")
+        }
+
+        return descriptions.isEmpty ? "No MCP configs found." : descriptions.joined(separator: "\n")
+    }
+
     private func generate() {
         isGenerating = true
         errorMessage = nil
@@ -162,6 +185,7 @@ struct JobEditorSheet: View {
 
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let username = NSUserName()
+        let mcpInfo = discoverMCPConfigs()
 
         let metaPrompt = """
         I need you to create a scheduled Claude Code job. Output ONLY a JSON object with two fields:
@@ -186,9 +210,8 @@ struct JobEditorSheet: View {
         Username: \(username)
         Schedule: \(scheduleDescription())
 
-        Known MCP configs on this system:
-        - Granola: \(home)/Documents/Github/every-consulting/plugins/claudie/.mcp.json (has mcp__granola__* tools)
-        - Global: ~/.claude/.mcp.json (if it exists)
+        Available MCP configs discovered on this system:
+        \(mcpInfo)
 
         User's request: \(description)
 
@@ -198,7 +221,7 @@ struct JobEditorSheet: View {
         let settings = AppSettings.shared
         let process = Process()
         process.executableURL = URL(fileURLWithPath: settings.claudeBinaryPath)
-        process.arguments = ["-p", metaPrompt, "--output-format", "text", "--dangerously-skip-permissions"]
+        process.arguments = ["-p", metaPrompt, "--output-format", "text", "--max-turns", "1"]
 
         var env = ProcessInfo.processInfo.environment
         env.removeValue(forKey: "CLAUDECODE")
