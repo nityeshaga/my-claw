@@ -61,7 +61,11 @@ My Claw reads the same filesystem data that Claude Code produces — JSONL sessi
 1. Go to the [latest release](https://github.com/nityeshaga/my-claw/releases/latest)
 2. Download `My.Claw.zip`
 3. Unzip and drag `My Claw.app` to your `/Applications` folder
-4. On first launch, macOS will warn about an unidentified developer — right-click the app, click **Open**, then click **Open** again in the dialog. You only need to do this once.
+4. Remove the macOS quarantine flag (required for unsigned apps downloaded from the internet):
+   ```bash
+   xattr -cr "/Applications/My Claw.app"
+   ```
+5. Open the app. If macOS still warns about an unidentified developer, right-click the app, click **Open**, then click **Open** again.
 
 The app checks for updates automatically. You can also check manually via **My Claw > Check for Updates...** in the menu bar.
 
