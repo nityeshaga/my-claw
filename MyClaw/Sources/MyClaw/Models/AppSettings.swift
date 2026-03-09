@@ -27,6 +27,18 @@ class AppSettings: ObservableObject {
             }
         }
     }
+    @Published var notifySlack: Bool {
+        didSet {
+            UserDefaults.standard.set(notifySlack, forKey: "notifySlack")
+            NotificationConfig.write()
+        }
+    }
+    @Published var slackWebhookURL: String {
+        didSet {
+            UserDefaults.standard.set(slackWebhookURL, forKey: "slackWebhookURL")
+            NotificationConfig.write()
+        }
+    }
 
     private init() {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
@@ -39,6 +51,9 @@ class AppSettings: ObservableObject {
         self.showNotifications = UserDefaults.standard.object(forKey: "showNotifications") as? Bool ?? true
         self.notifyOnFailureOnly = UserDefaults.standard.object(forKey: "notifyOnFailureOnly") as? Bool ?? false
         self.hookAutoInstall = UserDefaults.standard.object(forKey: "hookAutoInstall") as? Bool ?? true
+        self.notifySlack = UserDefaults.standard.object(forKey: "notifySlack") as? Bool ?? false
+        self.slackWebhookURL = UserDefaults.standard.string(forKey: "slackWebhookURL") ?? ""
+        NotificationConfig.write()
     }
 
     var launchAgentsDirectory: String {

@@ -2,7 +2,7 @@ import Foundation
 
 /// Single source of truth for the app version (not actor-isolated)
 enum AppVersion {
-    static let current = "1.1.0"
+    static let current = "1.2.0"
 }
 
 /// Installs and manages the Claude Code SessionEnd hook that populates the session index
@@ -217,6 +217,36 @@ enum HookInstaller {
         import json, sys, os
         from datetime import datetime, timezone
 
+        def send_slack(webhook_url, job_name, reason, duration_str, total_tokens, final_text):
+            import urllib.request
+            status = "Failed" if reason == "error" else "Completed"
+            emoji = "\\u274c" if reason == "error" else "\\u2705"
+            truncated = final_text[:3000] if final_text else "(no output)"
+            if len(final_text) > 3000:
+                truncated += "\\n... (truncated)"
+            payload = {
+                "blocks": [
+                    {
+                        "type": "header",
+                        "text": {"type": "plain_text", "text": f"{emoji} Job '{job_name}' {status}"}
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {"type": "mrkdwn", "text": f"*Duration:* {duration_str}  |  *Tokens:* {total_tokens:,}"}
+                        ]
+                    },
+                    {"type": "divider"},
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": truncated}
+                    }
+                ]
+            }
+            data = json.dumps(payload).encode()
+            req = urllib.request.Request(webhook_url, data=data, headers={"Content-Type": "application/json"})
+            urllib.request.urlopen(req, timeout=15)
+
         def main():
             try:
                 hook_input = json.loads(sys.stdin.read())
@@ -231,10 +261,13 @@ enum HookInstaller {
             if not session_id or not transcript_path:
                 sys.exit(0)
 
+            job_name = os.environ.get("MYCLAW_JOB_NAME", "")
+
             total_input = 0
             total_output = 0
             num_turns = 0
             first_timestamp = None
+            last_assistant_text = ""
 
             try:
                 with open(transcript_path, "r") as f:
@@ -268,6 +301,16 @@ enum HookInstaller {
                                 total_input += usage.get("cache_creation_input_tokens", 0)
                                 total_input += usage.get("cache_read_input_tokens", 0)
                                 total_output += usage.get("output_tokens", 0)
+                            # Extract text content for final response
+                            content = message.get("content")
+                            if isinstance(content, list):
+                                for block in content:
+                                    if isinstance(block, dict) and block.get("type") == "text":
+                                        text = block.get("text", "").strip()
+                                        if text:
+                                            last_assistant_text = text
+                            elif isinstance(content, str) and content.strip():
+                                last_assistant_text = content.strip()
             except (FileNotFoundError, PermissionError):
                 pass
 
@@ -279,6 +322,8 @@ enum HookInstaller {
                 "reason": reason,
                 "finished_at": finished_at,
             }
+            if job_name:
+                result["job_name"] = job_name
             if num_turns > 0:
                 result["num_turns"] = num_turns
             if first_timestamp:
@@ -294,6 +339,45 @@ enum HookInstaller {
             with open(index_path, "a") as f:
                 f.write(json.dumps(result, separators=(",", ":")) + "\\n")
                 f.flush()
+
+            # Send Slack notification for scheduled jobs only
+            if not job_name:
+                return
+
+            try:
+                config_path = os.path.expanduser("~/.claude/job-monitor/notification-config.json")
+                with open(config_path, "r") as f:
+                    config = json.load(f)
+            except Exception:
+                return
+
+            if not config.get("notify_slack"):
+                return
+            webhook_url = config.get("slack_webhook_url", "").strip()
+            if not webhook_url:
+                return
+
+            # Calculate duration string
+            duration_str = "unknown"
+            if first_timestamp:
+                try:
+                    start_str = first_timestamp.replace("Z", "+00:00")
+                    start_dt = datetime.fromisoformat(start_str)
+                    end_dt = datetime.now(timezone.utc)
+                    secs = int((end_dt - start_dt).total_seconds())
+                    if secs >= 3600:
+                        duration_str = f"{secs // 3600}h {(secs % 3600) // 60}m"
+                    elif secs >= 60:
+                        duration_str = f"{secs // 60}m {secs % 60}s"
+                    else:
+                        duration_str = f"{secs}s"
+                except Exception:
+                    pass
+
+            try:
+                send_slack(webhook_url, job_name, reason, duration_str, total_input + total_output, last_assistant_text)
+            except Exception as e:
+                print(f"Slack notification failed: {e}", file=sys.stderr)
 
         if __name__ == "__main__":
             main()

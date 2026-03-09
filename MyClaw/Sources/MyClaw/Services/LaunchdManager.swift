@@ -42,6 +42,7 @@ enum LaunchdManager {
         # Claude Job: \(name)
         # Created: \(ISO8601DateFormatter().string(from: .now))
 
+        export MYCLAW_JOB_NAME="\(name)"
         LOG="$HOME/.\(name).log"
 
         echo "=== Started at $(date) ===" >> "$LOG"
