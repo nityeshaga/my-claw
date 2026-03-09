@@ -180,7 +180,7 @@ struct JobEditorSheet: View {
         - The right --allowedTools based on what tools the task needs (e.g. Read,Bash,Grep,Write for code tasks; mcp__granola__* for Granola tasks)
         - Whether --mcp-config is needed (only if the task uses MCP tools that aren't in the project's default .mcp.json)
         - The right working directory based on the task description
-        - Always include --dangerously-skip-permissions since this runs unattended
+        - Do NOT use --dangerously-skip-permissions. Instead, use --allowedTools to specify exactly which tools the job needs (e.g. --allowedTools "Read,Bash(npm run *),Grep" for code tasks, or --allowedTools "mcp__granola__*" for Granola tasks). This scopes permissions to only what's needed. Make sure the list is complete — any tool not listed will hang the unattended job.
 
         The user's home is: \(home)
         Username: \(username)
@@ -198,7 +198,7 @@ struct JobEditorSheet: View {
         let settings = AppSettings.shared
         let process = Process()
         process.executableURL = URL(fileURLWithPath: settings.claudeBinaryPath)
-        process.arguments = ["-p", metaPrompt, "--output-format", "text"]
+        process.arguments = ["-p", metaPrompt, "--output-format", "text", "--dangerously-skip-permissions"]
 
         var env = ProcessInfo.processInfo.environment
         env.removeValue(forKey: "CLAUDECODE")
