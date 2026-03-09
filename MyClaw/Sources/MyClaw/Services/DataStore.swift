@@ -151,9 +151,15 @@ class DataStore: ObservableObject {
 
     // MARK: - Computed properties
 
+    /// Sessions that belong to a known scheduled job (matched by cwd)
+    var scheduledSessions: [SessionRun] {
+        let jobCwds = Set(jobs.compactMap(\.workingDirectory))
+        return sessions.filter { jobCwds.contains($0.cwd) }
+    }
+
     var sessionsToday: [SessionRun] {
         let calendar = Calendar.current
-        return sessions.filter { session in
+        return scheduledSessions.filter { session in
             guard let date = session.finishedDate else { return false }
             return calendar.isDateInToday(date)
         }
