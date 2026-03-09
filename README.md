@@ -54,47 +54,18 @@ My Claw reads the same filesystem data that Claude Code produces — JSONL sessi
 
 ## Setup
 
-### 1. Install the SessionEnd hook
-
-My Claw reads session data from `~/.claude/job-monitor/jobs-index.jsonl`, which is populated by a SessionEnd hook. If you're using the [every-consulting experimental plugin](https://github.com/every-consulting), this is already configured.
-
-Otherwise, create `~/.claude/hooks.json` (or add to your existing hooks) with:
-
-```json
-{
-  "hooks": {
-    "SessionEnd": [
-      {
-        "type": "command",
-        "command": "/path/to/session-end-capture.sh"
-      }
-    ]
-  }
-}
-```
-
-The hook script captures each session's ID, transcript path, working directory, finish reason, timestamps, turn count, and token usage into the JSONL index.
-
-### 2. Install the app
+### 1. Install the app
 
 #### Download (recommended)
 
 1. Go to the [latest release](https://github.com/nityeshaga/my-claw/releases/latest)
 2. Download `My.Claw.zip`
-3. Unzip it
-4. Drag `My Claw.app` to your `/Applications` folder
-5. On first launch, macOS will warn about an unidentified developer. To open it:
-   - Right-click (or Control-click) the app in Finder
-   - Click **Open**
-   - Click **Open** again in the dialog
+3. Unzip and drag `My Claw.app` to your `/Applications` folder
+4. On first launch, macOS will warn about an unidentified developer — right-click the app, click **Open**, then click **Open** again in the dialog. You only need to do this once.
 
-   You only need to do this once — after that it opens normally.
-
-The app checks for updates automatically. You can also check manually via **My Claw > Check for Updates...** in the menu bar, or in **Settings > Updates**.
+The app checks for updates automatically. You can also check manually via **My Claw > Check for Updates...** in the menu bar.
 
 #### Build from source
-
-If you prefer to build it yourself:
 
 ```bash
 git clone https://github.com/nityeshaga/my-claw.git
@@ -103,16 +74,15 @@ cd my-claw
 cp -r "dist/My Claw.app" /Applications/
 ```
 
-To rebuild after code changes:
-```bash
-./scripts/bundle-app.sh && cp -r "dist/My Claw.app" /Applications/
-```
-
-For development, you can also run directly without installing:
+For development, you can run directly without installing:
 ```bash
 cd MyClaw
 swift run MyClaw
 ```
+
+### 2. Session tracking
+
+On first launch, My Claw automatically installs a Claude Code `SessionEnd` hook that captures session metadata (tokens, turns, duration, etc.) into `~/.claude/job-monitor/jobs-index.jsonl`. No manual configuration needed — the hook is kept up to date automatically.
 
 ### 3. Schedule jobs
 
