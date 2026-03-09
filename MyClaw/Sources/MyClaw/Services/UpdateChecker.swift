@@ -12,6 +12,8 @@ final class UpdateChecker: ObservableObject {
     @Published var releaseNotes: String?
     @Published var updateAvailable = false
     @Published var checking = false
+    @Published var showCheckResult = false
+    @Published var checkFailed = false
 
     private var lastCheck: Date?
     private let checkInterval: TimeInterval = 60 * 60 * 4 // 4 hours
@@ -23,14 +25,21 @@ final class UpdateChecker: ObservableObject {
         check()
     }
 
-    func check() {
+    func check(manual: Bool = false) {
         guard !checking else { return }
         checking = true
+        checkFailed = false
 
         Task {
-            defer { checking = false }
+            defer {
+                checking = false
+                if manual { showCheckResult = true }
+            }
 
-            guard let url = URL(string: "https://api.github.com/repos/\(repo)/releases/latest") else { return }
+            guard let url = URL(string: "https://api.github.com/repos/\(repo)/releases/latest") else {
+                if manual { checkFailed = true }
+                return
+            }
 
             var request = URLRequest(url: url)
             request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
@@ -41,11 +50,13 @@ final class UpdateChecker: ObservableObject {
 
                 guard let httpResponse = response as? HTTPURLResponse,
                       httpResponse.statusCode == 200 else {
+                    if manual { checkFailed = true }
                     return
                 }
 
                 guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                       let tagName = json["tag_name"] as? String else {
+                    if manual { checkFailed = true }
                     return
                 }
 
@@ -73,7 +84,7 @@ final class UpdateChecker: ObservableObject {
                 self.lastCheck = Date()
                 self.updateAvailable = isNewer(version, than: Self.currentVersion)
             } catch {
-                // Silently fail — update check is best-effort
+                if manual { checkFailed = true }
             }
         }
     }

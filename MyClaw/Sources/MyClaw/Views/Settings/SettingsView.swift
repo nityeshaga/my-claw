@@ -99,7 +99,7 @@ struct SettingsView: View {
                 }
 
                 Button {
-                    updateChecker.check()
+                    updateChecker.check(manual: true)
                 } label: {
                     HStack(spacing: 6) {
                         if updateChecker.checking {
