@@ -20,6 +20,11 @@ swift build -c release  # release build
 - The "New Claude" flow uses Claude itself to generate wrapper scripts — don't replace this with a manual form.
 - When spawning `claude` child processes, always clear the `CLAUDECODE` env var.
 
+## Release workflow
+
+- Bump `AppVersion.current` in `MyClaw/Sources/MyClaw/Services/HookInstaller.swift` for every PR.
+- After merging a PR, create a GitHub release with the new version tag (e.g. `v1.2.0`).
+
 ## Past learnings
 
 Skim `compounding-logs.md` when planning — it has gotchas from previous sessions (SwiftPM app quirks, macOS-specific issues, design decisions that went wrong the first time).
