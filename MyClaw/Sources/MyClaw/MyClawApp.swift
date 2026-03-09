@@ -4,6 +4,7 @@ import AppKit
 @main
 struct MyClawApp: App {
     @StateObject private var dataStore = DataStore()
+    @ObservedObject private var updateChecker = UpdateChecker.shared
     @State private var showNewSession = false
 
     var body: some Scene {
@@ -37,6 +38,40 @@ struct MyClawApp: App {
                         .environmentObject(dataStore)
                         .frame(minWidth: 600, minHeight: 450)
                 }
+                .alert(
+                    updateChecker.checkFailed
+                        ? "Update Check Failed"
+                        : updateChecker.updateAvailable
+                            ? "Update Available"
+                            : "You're Up to Date",
+                    isPresented: $updateChecker.showCheckResult
+                ) {
+                    if updateChecker.checkFailed {
+                        Button("OK", role: .cancel) {}
+                    } else if updateChecker.updateAvailable {
+                        if let url = updateChecker.downloadURL,
+                           let downloadURL = URL(string: url) {
+                            Button("Download") {
+                                NSWorkspace.shared.open(downloadURL)
+                            }
+                        }
+                        Button("Later", role: .cancel) {}
+                    } else {
+                        Button("OK", role: .cancel) {}
+                    }
+                } message: {
+                    if updateChecker.checkFailed {
+                        Text("Could not reach GitHub. Try again later.")
+                    } else if updateChecker.updateAvailable, let latest = updateChecker.latestVersion {
+                        if let notes = updateChecker.releaseNotes, !notes.isEmpty {
+                            Text("MyClaw \(latest) is available (you have \(UpdateChecker.currentVersion)).\n\n\(notes)")
+                        } else {
+                            Text("MyClaw \(latest) is available (you have \(UpdateChecker.currentVersion)).")
+                        }
+                    } else {
+                        Text("MyClaw \(UpdateChecker.currentVersion) is the latest version.")
+                    }
+                }
         }
         .windowStyle(.titleBar)
         .defaultSize(width: 1100, height: 750)
@@ -49,7 +84,7 @@ struct MyClawApp: App {
             }
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates...") {
-                    UpdateChecker.shared.check()
+                    UpdateChecker.shared.check(manual: true)
                 }
             }
         }
