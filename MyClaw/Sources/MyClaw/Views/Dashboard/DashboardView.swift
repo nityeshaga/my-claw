@@ -21,14 +21,14 @@ struct DashboardView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ArcadeSectionHeader(title: "Recent Sessions", color: Theme.coral)
-                    if dataStore.sessions.isEmpty {
+                    if dataStore.scheduledSessions.isEmpty {
                         Text("No sessions captured yet.")
                             .font(Theme.bodyText)
                             .foregroundStyle(Theme.textTertiary)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.vertical, 40)
                     } else {
-                        SessionListView(sessions: Array(dataStore.sessions.prefix(20)))
+                        SessionListView(sessions: Array(dataStore.scheduledSessions.prefix(20)))
                     }
                 }
             }
