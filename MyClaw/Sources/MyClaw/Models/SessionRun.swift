@@ -11,6 +11,7 @@ struct SessionRun: Identifiable, Codable, Hashable {
     var startedAt: String?
     var totalInputTokens: Int?
     var totalOutputTokens: Int?
+    var jobName: String?
 
     var id: String { sessionId }
 
@@ -24,6 +25,7 @@ struct SessionRun: Identifiable, Codable, Hashable {
         case startedAt = "started_at"
         case totalInputTokens = "total_input_tokens"
         case totalOutputTokens = "total_output_tokens"
+        case jobName = "job_name"
     }
 
     var finishedDate: Date? {

@@ -272,7 +272,18 @@ struct JobEditorSheet: View {
 
         try? FileManager.default.createDirectory(atPath: settings.scriptsDirectory, withIntermediateDirectories: true)
 
-        guard FileManager.default.createFile(atPath: scriptPath, contents: script.data(using: .utf8)) else {
+        // Inject MYCLAW_JOB_NAME env var so the SessionEnd hook can identify scheduled jobs
+        let exportLine = "export MYCLAW_JOB_NAME=\"\(name)\""
+        let finalScript: String
+        if let newlineIdx = script.firstIndex(of: "\n") {
+            var s = script
+            s.insert(contentsOf: "\n\(exportLine)", at: newlineIdx)
+            finalScript = s
+        } else {
+            finalScript = script + "\n\(exportLine)\n"
+        }
+
+        guard FileManager.default.createFile(atPath: scriptPath, contents: finalScript.data(using: .utf8)) else {
             errorMessage = "Failed to write script."
             return
         }

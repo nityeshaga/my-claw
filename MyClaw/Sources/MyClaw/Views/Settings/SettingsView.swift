@@ -35,6 +35,29 @@ struct SettingsView: View {
                     .disabled(!settings.showNotifications)
             }
 
+            Section("Slack Notifications") {
+                Toggle("Send Slack notifications", isOn: $settings.notifySlack)
+                    .tint(Theme.success)
+
+                if settings.notifySlack {
+                    LabeledContent("Webhook URL") {
+                        TextField("https://hooks.slack.com/services/...", text: $settings.slackWebhookURL)
+                            .font(Theme.dataMono)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(maxWidth: 400)
+                    }
+
+                    Button("Send Test Message") {
+                        sendTestSlack()
+                    }
+                    .disabled(settings.slackWebhookURL.isEmpty)
+                }
+
+                Text("Sends the final response to Slack when a scheduled job finishes.")
+                    .font(Theme.captionMono)
+                    .foregroundStyle(Theme.textTertiary)
+            }
+
             Section("Session Hook") {
                 Toggle("Auto-install session tracking hook", isOn: $settings.hookAutoInstall)
                     .tint(Theme.success)
@@ -123,5 +146,28 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .navigationTitle("Settings")
+    }
+
+    private func sendTestSlack() {
+        let webhookURL = settings.slackWebhookURL
+        guard !webhookURL.isEmpty else { return }
+
+        let script = """
+        import urllib.request, json
+        payload = json.dumps({
+            "text": "\\u2705 *MyClaw test* \\u2014 Slack notifications are working!"
+        })
+        req = urllib.request.Request(
+            "\(webhookURL)",
+            data=payload.encode(),
+            headers={"Content-Type": "application/json"}
+        )
+        urllib.request.urlopen(req, timeout=10)
+        """
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+        process.arguments = ["-c", script]
+        try? process.run()
     }
 }
