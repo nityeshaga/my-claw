@@ -16,7 +16,8 @@ enum LaunchdManager {
 
     /// Trigger an immediate run of a loaded job
     static func start(label: String) -> Bool {
-        runLaunchctl(["start", label])
+        let uid = getuid()
+        return runLaunchctl(["kickstart", "-k", "gui/\(uid)/\(label)"])
     }
 
     /// Create a new scheduled job (wrapper script + plist)
