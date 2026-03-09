@@ -22,8 +22,12 @@ swift build -c release  # release build
 
 ## Release workflow
 
-- Bump `AppVersion.current` in `MyClaw/Sources/MyClaw/Services/HookInstaller.swift` for every PR.
-- After merging a PR, create a GitHub release with the new version tag (e.g. `v1.2.0`).
+Every PR must:
+1. Bump `AppVersion.current` in `MyClaw/Sources/MyClaw/Services/HookInstaller.swift` (increment patch for fixes, minor for features).
+2. After the user confirms the PR is merged, immediately:
+   - Run `./scripts/bundle-app.sh` to build the .app bundle
+   - Zip it: `cd dist && zip -r "My.Claw.zip" "My Claw.app"`
+   - Create a GitHub release: `gh release create v{VERSION} "dist/My.Claw.zip" --title "My Claw v{VERSION}" --notes "{description}"`
 
 ## Past learnings
 
