@@ -2,7 +2,7 @@ import Foundation
 
 /// Single source of truth for the app version (not actor-isolated)
 enum AppVersion {
-    static let current = "1.3.0"
+    static let current = "1.3.1"
 }
 
 /// Installs and manages the Claude Code SessionEnd hook that populates the session index

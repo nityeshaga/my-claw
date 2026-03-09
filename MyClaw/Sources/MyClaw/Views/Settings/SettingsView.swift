@@ -47,10 +47,29 @@ struct SettingsView: View {
                             .frame(maxWidth: 400)
                     }
 
-                    Button("Send Test Message") {
-                        sendTestSlack()
+                    HStack(spacing: 12) {
+                        Button("Send Test Message") {
+                            sendTestSlack()
+                        }
+                        .disabled(settings.slackWebhookURL.isEmpty)
+
+                        Button("Get Webhook URL") {
+                            NSWorkspace.shared.open(URL(string: "https://api.slack.com/apps")!)
+                        }
+                        .foregroundStyle(Theme.textSecondary)
                     }
-                    .disabled(settings.slackWebhookURL.isEmpty)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Setup: api.slack.com/apps > Create New App > From Scratch")
+                            .font(Theme.captionMono)
+                            .foregroundStyle(Theme.textTertiary)
+                        Text("> Incoming Webhooks > On > Add New Webhook to Workspace")
+                            .font(Theme.captionMono)
+                            .foregroundStyle(Theme.textTertiary)
+                        Text("> Pick a channel > Copy the webhook URL and paste above")
+                            .font(Theme.captionMono)
+                            .foregroundStyle(Theme.textTertiary)
+                    }
                 }
 
                 Text("Sends the final response to Slack when a scheduled job finishes.")
